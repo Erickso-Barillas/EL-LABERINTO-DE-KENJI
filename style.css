@@ -134,3 +134,47 @@ canvas {
   font-weight: bold;
   white-space: nowrap;
 }
+/* Contenedor de controles táctiles */
+#touch-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dpad-middle {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.dpad-btn {
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  font-size: 24px;
+  margin: 4px;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.dpad-btn:active {
+  background: rgba(255, 255, 255, 0.8);
+  color: black;
+}
+
+/* Ocultar elementos */
+.hidden {
+  display: none !important;
+}

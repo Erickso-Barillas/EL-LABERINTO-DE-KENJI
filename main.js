@@ -1,14 +1,21 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Pantallas
+// Pantallas y Controles
 const menuScreen = document.getElementById('menu-screen');
 const introScreen = document.getElementById('intro-screen');
+const touchControls = document.getElementById('touch-controls');
 
-// Botones
+// Botones Menú
 const btnPlay = document.getElementById('btn-play');
 const btnExit = document.getElementById('btn-exit');
 const btnStartGame = document.getElementById('btn-start-game');
+
+// Botones D-Pad Táctil
+const btnUp = document.getElementById('btn-up');
+const btnDown = document.getElementById('btn-down');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
 
 // --- AUDIOS DEL JUEGO (.mpeg) ---
 const audioMenu = new Audio('audio/menu_music.mpeg');
@@ -19,37 +26,20 @@ const audioIntro = new Audio('audio/introduccion.mpeg');
 const audioVictoria = new Audio('audio/victoria.mpeg');
 const audioDerrota = new Audio('audio/derrota.mpeg');
 
-// Iniciar música de fondo al primer clic del usuario
+// Iniciar música de fondo al primer clic o toque
 document.body.addEventListener('click', () => {
   if (audioMenu.paused && !gameActive && !menuScreen.classList.contains('hidden')) {
-    audioMenu.play().catch(e => console.log("Esperando interacción..."));
+    audioMenu.play().catch(e => console.log(e));
   }
 }, { once: true });
 
 // --- ACCIÓN BOTÓN DE SALIDA ---
 btnExit.addEventListener('click', () => {
-  // 1. Detiene la música de fondo
   audioMenu.pause();
   audioMenu.currentTime = 0;
-
-  // 2. Intenta cerrar la ventana/pestaña actual
   window.close();
-
-  // 3. Si el navegador bloquea window.close(), redirige o limpia la pantalla
   setTimeout(() => {
-    document.body.innerHTML = `
-      <div style="
-        display: flex; 
-        justify-content: center; 
-        align-items: center; 
-        height: 100vh; 
-        background-color: #111; 
-        color: #fff; 
-        font-family: sans-serif;
-        text-align: center;">
-        <h1>¡Gracias por jugar! Puedes cerrar esta pestaña.</h1>
-      </div>
-    `;
+    document.body.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#111;color:#fff;font-family:sans-serif;text-align:center;"><h1>¡Gracias por jugar! Puedes cerrar esta pestaña.</h1></div>`;
   }, 200);
 });
 
@@ -57,11 +47,11 @@ btnExit.addEventListener('click', () => {
 const imagenes = {
   nino: new Image(),
   muro: new Image(),
-  meta: new Image(),       // Salida Real (2)
-  trampa: new Image(),     // Salida Falsa (3)
+  meta: new Image(),
+  trampa: new Image(),
   fondo: new Image(),
-  victoria: new Image(),   // Imagen de celebración
-  derrota: new Image()     // Imagen de derrota
+  victoria: new Image(),
+  derrota: new Image()
 };
 
 imagenes.nino.src = 'assets/nino.png';
@@ -72,14 +62,11 @@ imagenes.fondo.src = 'assets/fondo.jpg';
 imagenes.victoria.src = 'assets/victoria.png'; 
 imagenes.derrota.src = 'assets/derrota.png';
 
-// Redibujar automáticamente al cargar las imágenes
 Object.values(imagenes).forEach(img => {
-  img.onload = () => {
-    if (gameActive) draw();
-  };
+  img.onload = () => { if (gameActive) draw(); };
 });
 
-// --- COLECCIÓN DE LABERINTOS DINÁMICOS ---
+// --- LABERINTOS DINÁMICOS ---
 const laberintos = [
   [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -124,29 +111,27 @@ window.addEventListener('resize', () => {
   if (gameActive) draw();
 });
 
-// --- PASO 1: DEL MENÚ A LA INTRODUCCIÓN ---
+// --- NAVEGACIÓN ENTRE PANTALLAS ---
 btnPlay.addEventListener('click', () => {
   menuScreen.classList.add('hidden');
   introScreen.classList.remove('hidden');
 
-  if (audioMenu.paused) {
-    audioMenu.play().catch(e => console.log(e));
-  }
-
+  if (audioMenu.paused) audioMenu.play().catch(e => console.log(e));
   audioIntro.currentTime = 0;
   audioIntro.play().catch(e => console.log(e));
 });
 
-// --- PASO 2: DE LA INTRODUCCIÓN AL JUEGO ---
 btnStartGame.addEventListener('click', () => {
   audioMenu.pause();
   audioMenu.currentTime = 0;
-
   audioIntro.pause();
   audioIntro.currentTime = 0;
 
   introScreen.classList.add('hidden');
   
+  // Mostrar controles táctiles al iniciar la partida
+  touchControls.classList.remove('hidden');
+
   resizeCanvas();
   seleccionarMapaAleatorio();
   player = { x: 1, y: 1 };
@@ -154,6 +139,42 @@ btnStartGame.addEventListener('click', () => {
   gameActive = true;
   draw();
 });
+
+// --- LÓGICA DE MOVIMIENTO (TECLADO Y TÁCTIL) ---
+function moverJugador(dir) {
+  if (!gameActive) return;
+
+  let nextX = player.x;
+  let nextY = player.y;
+
+  if (dir === 'Up') nextY--;
+  if (dir === 'Down') nextY++;
+  if (dir === 'Left') nextX--;
+  if (dir === 'Right') nextX++;
+
+  if (nextY < 0 || nextY >= grid.length || nextX < 0 || nextX >= grid[0].length) return;
+
+  if (grid[nextY][nextX] !== 1) { 
+    player.x = nextX;
+    player.y = nextY;
+    draw();
+    checkTile(grid[nextY][nextX]);
+  }
+}
+
+// Eventos de teclado
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp') moverJugador('Up');
+  if (e.key === 'ArrowDown') moverJugador('Down');
+  if (e.key === 'ArrowLeft') moverJugador('Left');
+  if (e.key === 'ArrowRight') moverJugador('Right');
+});
+
+// Eventos táctiles para los botones en pantalla
+btnUp.addEventListener('click', () => moverJugador('Up'));
+btnDown.addEventListener('click', () => moverJugador('Down'));
+btnLeft.addEventListener('click', () => moverJugador('Left'));
+btnRight.addEventListener('click', () => moverJugador('Right'));
 
 // --- DIBUJO EN CANVAS ---
 function draw() {
@@ -164,7 +185,6 @@ function draw() {
   const tileWidth = canvas.width / grid[0].length;
   const tileHeight = canvas.height / grid.length;
 
-  // Fondo
   if (imagenes.fondo.complete && imagenes.fondo.naturalWidth !== 0) {
     ctx.drawImage(imagenes.fondo, 0, 0, canvas.width, canvas.height);
   } else {
@@ -172,35 +192,23 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  // Muros y Objetivos
   for (let r = 0; r < grid.length; r++) {
     for (let c = 0; c < grid[r].length; c++) {
       let x = c * tileWidth;
       let y = r * tileHeight;
 
-      if (grid[r][c] === 1) {
-        if (imagenes.muro.complete && imagenes.muro.naturalWidth !== 0) {
-          ctx.drawImage(imagenes.muro, x, y, tileWidth, tileHeight);
-        } else {
-          ctx.fillStyle = "#555";
-          ctx.fillRect(x, y, tileWidth, tileHeight);
-        }
-      } else if (grid[r][c] === 2) {
-        if (imagenes.meta.complete && imagenes.meta.naturalWidth !== 0) {
-          ctx.drawImage(imagenes.meta, x, y, tileWidth, tileHeight);
-        }
-      } else if (grid[r][c] === 3) {
-        if (imagenes.trampa.complete && imagenes.trampa.naturalWidth !== 0) {
-          ctx.drawImage(imagenes.trampa, x, y, tileWidth, tileHeight);
-        }
+      if (grid[r][c] === 1 && imagenes.muro.complete) {
+        ctx.drawImage(imagenes.muro, x, y, tileWidth, tileHeight);
+      } else if (grid[r][c] === 2 && imagenes.meta.complete) {
+        ctx.drawImage(imagenes.meta, x, y, tileWidth, tileHeight);
+      } else if (grid[r][c] === 3 && imagenes.trampa.complete) {
+        ctx.drawImage(imagenes.trampa, x, y, tileWidth, tileHeight);
       }
     }
   }
 
-  // Personaje Niño
   if (imagenes.nino.complete && imagenes.nino.naturalWidth !== 0) {
     const aspectRatio = imagenes.nino.naturalWidth / imagenes.nino.naturalHeight;
-    
     let targetHeight = tileHeight * 0.75; 
     let targetWidth = targetHeight * aspectRatio;
 
@@ -216,9 +224,10 @@ function draw() {
   }
 }
 
-// --- PANTALLA DE RESULTADOS (VICTORIA / DERROTA) ---
+// --- PANTALLA DE RESULTADOS Y REINICIO ---
 function mostrarResultado(imgResultado) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  touchControls.classList.add('hidden'); // Oculta controles al finalizar
   
   if (imgResultado.complete && imgResultado.naturalWidth !== 0) {
     const aspectRatio = imgResultado.naturalWidth / imgResultado.naturalHeight;
@@ -235,61 +244,31 @@ function mostrarResultado(imgResultado) {
 
     ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.drawImage(imgResultado, x, y, targetWidth, targetHeight);
   }
 }
-
-// --- CONTROLES Y CONDICIONES ---
-window.addEventListener('keydown', (e) => {
-  if (!gameActive) return;
-
-  let nextX = player.x;
-  let nextY = player.y;
-
-  if (e.key === 'ArrowUp') nextY--;
-  if (e.key === 'ArrowDown') nextY++;
-  if (e.key === 'ArrowLeft') nextX--;
-  if (e.key === 'ArrowRight') nextX++;
-
-  if (nextY < 0 || nextY >= grid.length || nextX < 0 || nextX >= grid[0].length) return;
-
-  if (grid[nextY][nextX] !== 1) { 
-    player.x = nextX;
-    player.y = nextY;
-    draw();
-    checkTile(grid[nextY][nextX]);
-  }
-});
 
 function checkTile(tileValue) {
   if (tileValue === 2) {
     gameActive = false;
     audioVictoria.currentTime = 0;
     audioVictoria.play().catch(e => console.log(e));
-
     mostrarResultado(imagenes.victoria);
-
-    setTimeout(() => { 
-      reiniciarJuego(); 
-    }, 4000);
+    setTimeout(() => { reiniciarJuego(); }, 4000);
 
   } else if (tileValue === 3) {
     gameActive = false;
     audioDerrota.currentTime = 0;
     audioDerrota.play().catch(e => console.log(e));
-
     mostrarResultado(imagenes.derrota);
-
-    setTimeout(() => { 
-      reiniciarJuego(); 
-    }, 4000);
+    setTimeout(() => { reiniciarJuego(); }, 4000);
   }
 }
 
 function reiniciarJuego() {
   player = { x: 1, y: 1 };
   gameActive = false;
+  touchControls.classList.add('hidden');
   menuScreen.classList.remove('hidden');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
