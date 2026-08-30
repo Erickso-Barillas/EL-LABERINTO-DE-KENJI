@@ -16,7 +16,10 @@ const ASSETS = [
   './audio/menu_music.mpeg',
   './audio/introduccion.mpeg',
   './audio/victoria.mpeg',
-  './audio/derrota.mpeg'
+  './audio/derrota.mpeg',
+  './audio/explosion.mp3',
+  './audio/trampa.mp3',
+  './audio/la_bomba.mpeg'
 ];
 
 // Instalación y almacenamiento en caché de todos los recursos
