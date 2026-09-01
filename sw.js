@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kenji-laberinto-v4'; 
+const CACHE_NAME = 'kenji-laberinto-v5'; 
 const ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,6 @@ const ASSETS = [
   './main.js',
   './manifest.json',
 
-  // Todos los archivos de la carpeta assets
   './assets/apple-touch-icon.png',
   './assets/bomba.png',
   './assets/cai_en_espinas.png',
@@ -27,13 +26,11 @@ const ASSETS = [
   './assets/muro.jpg',
   './assets/nino.png',
   './assets/personaje_intro.png',
-  './assets/site.webmanifest',
   './assets/trampa.png',
   './assets/victoria.png',
   './assets/web-app-manifest-192x192.png',
   './assets/web-app-manifest-512x512.png',
 
-  // Pistas de Audio (Asegúrate de que coincidan exactamente las mayúsculas/minúsculas)
   './audio/menu_music.mpeg',
   './audio/introduccion.mpeg',
   './audio/victoria.mpeg',
@@ -45,17 +42,25 @@ const ASSETS = [
   './audio/final_espinas.mp3'
 ];
 
-// Instalación y precaché de todos los archivos
+// Instalación tolerante a fallos
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Intenta guardar cada archivo individualmente sin romper el proceso si uno falla
+      await Promise.allSettled(
+        ASSETS.map(asset => 
+          fetch(asset).then(response => {
+            if (!response.ok) throw new Error(`Error HTTP ${response.status} en ${asset}`);
+            return cache.put(asset, response);
+          }).catch(err => console.warn('No se pudo precachear:', asset, err))
+        )
+      );
     })
   );
   self.skipWaiting();
 });
 
-// Limpieza de caché antigua
+// Limpieza de caché previa
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -71,7 +76,7 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// Intercepción para modo offline
+// Estrategia Cache First con fallback a red
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((response) => {
