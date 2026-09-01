@@ -40,7 +40,7 @@ const audioTrampa = new Audio('audio/trampa.mp3');
 const audioLaBomba = new Audio('audio/la_bomba.mpeg');
 
 // Audios de espinas
-const audioVozEspinas = new Audio('audio/espinas.MPEG');
+const audioVozEspinas = new Audio('audio/espinas.mpeg');
 const audioFinalEspinas = new Audio('audio/final_espinas.mp3');
 audioFinalEspinas.volume = 0.3;
 
