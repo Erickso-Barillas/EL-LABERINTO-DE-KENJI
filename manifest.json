@@ -1,20 +1,19 @@
 {
   "name": "El Laberinto de Kenji",
-  "short_name": "LaberintoKenji",
+  "short_name": "Laberinto",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
-  "orientation": "landscape",
   "icons": [
     {
-      "src": "assets/nino.png",
+      "src": "assets/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/nino.png",
+      "src": "assets/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
