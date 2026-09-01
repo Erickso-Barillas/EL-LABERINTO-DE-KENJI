@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kenji-laberinto-v3';
+const CACHE_NAME = 'kenji-laberinto-v4'; 
 const ASSETS = [
   './',
   './index.html',

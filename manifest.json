@@ -2,9 +2,11 @@
   "name": "El Laberinto de Kenji",
   "short_name": "Laberinto",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
+  "orientation": "any",
   "icons": [
     {
       "src": "assets/web-app-manifest-192x192.png",
