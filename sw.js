@@ -42,18 +42,27 @@ const ASSETS = [
   './audio/final_espinas.mp3'
 ];
 
-// Instalación tolerante a fallos
+// Instalación tolerante a fallos y optimizada para audio/assets offline
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      // Intenta guardar cada archivo individualmente sin romper el proceso si uno falla
       await Promise.allSettled(
-        ASSETS.map(asset => 
-          fetch(asset).then(response => {
-            if (!response.ok) throw new Error(`Error HTTP ${response.status} en ${asset}`);
-            return cache.put(asset, response);
-          }).catch(err => console.warn('No se pudo precachear:', asset, err))
-        )
+        ASSETS.map(async (asset) => {
+          try {
+            // Forzar descarga limpia sin usar la caché HTTP del navegador
+            const request = new Request(asset, { cache: 'reload' });
+            const response = await fetch(request);
+            
+            if (!response.ok) {
+              throw new Error(`Error HTTP ${response.status} en ${asset}`);
+            }
+            
+            // Guardar en la caché del Service Worker
+            await cache.put(asset, response);
+          } catch (err) {
+            console.warn('No se pudo precachear:', asset, err);
+          }
+        })
       );
     })
   );
