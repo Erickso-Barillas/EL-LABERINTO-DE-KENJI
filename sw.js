@@ -38,7 +38,7 @@ const ASSETS = [
   './audio/explosion.mp3',
   './audio/trampa.mp3',
   './audio/la_bomba.mpeg',
-  './audio/espinas.MPEG',
+  './audio/espinas.mpeg',
   './audio/final_espinas.mp3'
 ];
 
